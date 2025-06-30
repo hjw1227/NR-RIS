@@ -9,27 +9,9 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 from utils.ppo_continuous_cnn import PPO_continuous_cnn
 import Env_test
 
-##++++++++++++++++++++++++++++++++++++++##
-# System configuration parameters
-posA = np.array([35.0, 150.0, 20.0])  # Base station position
-posB = np.array([30.0, 145.0, 15.0])  # RIS position
-pos1 = np.array([60.0, 185.0, 15.0])  # User 1 position
-pos2 = np.array([50.0, 195.0, 15.0])  # User 2 position
-pos3 = np.array([55.0, 175.0, 15.0])  # User 3 position
-pos4 = np.array([70.0, 160.0, 15.0])  # User 4 position
-
 # Communication parameters
 M = 32  # Number of base station antennas
 N = 64  # Number of RIS elements
-K = 4  # Number of users
-B = 10  # Bandwidth (MHz)
-pho = 0.01  # Transmission power
-kappa = 8  # Rice factor for user-RIS channel
-kappa_rb = 16  # Rice factor for RIS-base station channel
-alpha_kb = 3.5  # Path loss exponent for user-base station direct link
-alpha_kr = 2.5  # Path loss exponent for user-RIS link
-alpha_rb = 2  # Path loss exponent for RIS-base station link
-noise = 1e-10  # Noise power
 
 # Initialize environments
 env_evaluate = Env_test.nd_ris(N, M)
