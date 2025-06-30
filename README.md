@@ -33,7 +33,7 @@ The project addresses the challenge of designing resilient communication systems
 ## Key Components
 
 ### 1. Communication Environment (Env_test.py)
-The `nd_ris` class simulates a RIS-assisted wireless environment with:
+The `NR_RIS_Env` class simulates a RIS-assisted wireless environment with:
 - **System Parameters**: 
   - `N` (RIS elements), `M` (base station antennas), `K` (users)
   - Path loss exponents, Rice factors for channel modeling
@@ -103,7 +103,7 @@ python run_test.py --times 5000
 ### Command Line Arguments
 | Argument              | Default | Description                          |
 |-----------------------|---------|--------------------------------------|
-| `--max_train_episode` | 2000000 | Number of training episodes          |
+| `--max_train_episode` | 300000 | Number of training episodes          |
 | `--max_train_steps`   | 20      | Steps per training episode           |
 | `--policy_dist`       | "Beta"  | Policy distribution (Beta/Gaussian)  |
 | `--batch_size`        | 4000    | Training batch size                  |
