@@ -8,7 +8,7 @@ class nd_ris(object):
     def __init__(self):
         """Initialize communication environment with RIS parameters"""
         # System fixed parameters
-        self.N = 256  # Number of RIS elements
+        self.N = 64  # Number of RIS elements
         self.M = 32  # Number of base station antennas
         self.K = 4  # Number of users
         self.B = 100  # Bandwidth (MHz)
@@ -32,7 +32,6 @@ class nd_ris(object):
 
     def reset(self):
         """Reset environment and return initial state"""
-        self.done = False
         state = self.get_state()
         return state
 
@@ -44,6 +43,8 @@ class nd_ris(object):
         # Extract real and imaginary parts of channel
         real_part = np.abs(self.uplink)
         imag_part = np.angle(self.uplink)
+        # real_part = np.real(self.uplink)
+        # imag_part = np.imag(self.uplink)
 
         # Initialize and apply normalizers
         real_normalizer = MeanStdNormalizer()
@@ -58,7 +59,7 @@ class nd_ris(object):
         return combined
 
     def step(self, action, step):
-        """Execute action in environment and return next state, rewards, and done flag"""
+        """Execute action in environment and return next state, rewards"""
         step += 1
         H_down_real = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, self.nr_ris)
         reward = self.compute_reward(H_down_real, self.action_w_normal(action))
@@ -68,76 +69,12 @@ class nd_ris(object):
         # Get next state
         state_ = self.get_state()
 
-        # Check if episode is done
-        if step == 50:
-            self.done = True
-
         # Normalize reward
         reward_normalizer = DynamicNormalizer(window_size=4000)
         reward = reward_normalizer.normalize(reward)
 
-        return state_, reward, reward_mrt, reward_direct, self.done
+        return state_, reward, reward_mrt, reward_direct
 
-    def step_test(self, action, step):
-        """Test step function for evaluating different policies"""
-        step += 1
-        H_down_real = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, self.nr_ris)
-
-        # Calculate rewards for different policies
-        reward = self.compute_reward(H_down_real, self.action_w_normal(action))
-        reward_random_bf = self.compute_reward(H_down_real, self.action_w_random())
-        reward_mrt = self.compute_reward_attack(H_down_real, self.uplink.T)
-        reward_zf = self.compute_reward_attack_zf(H_down_real, self.uplink.T)
-        reward_direct_mrt = self.compute_reward_attack(self.Hub.T, self.Hub.T)
-        reward_direct_zf = self.compute_reward_attack_zf(self.Hub.T, self.Hub.T)
-
-        # Test with random RIS configuration
-        matrix = np.random.randn(self.N, self.N) + 1j * np.random.randn(self.N, self.N)
-        q, _ = np.linalg.qr(matrix)
-        nr_ris = q - np.eye(self.N, dtype=np.complex128)
-        uplink = self.uplink_channel_compute(self.Hur, self.Hub, self.Hrb, nr_ris)
-        H_down_real_random_ris = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, nr_ris)
-        reward_random_mrt = self.compute_reward_attack(H_down_real_random_ris, uplink.T)
-        reward_random_zf = self.compute_reward_attack_zf(H_down_real_random_ris, uplink.T)
-
-        return None, reward, reward_random_bf, reward_random_mrt, reward_random_zf, reward_mrt, reward_direct_mrt, reward_zf, reward_direct_zf
-
-    def step_test_2(self, action, step):
-        """Extended test step for multiple random RIS configurations"""
-        step += 1
-        uplink = self.uplink_channel_compute(self.Hur, self.Hub, self.Hrb, self.nr_ris)
-        reward = 0
-        reward_random_bf = 0
-        reward_zf = 0
-        reward_mrt = 0
-        reward_direct_mrt = 0
-        reward_direct_zf = 0
-        reward_random_mrt = 0
-        reward_random_zf = 0
-
-        # Average rewards over multiple random RIS configurations
-        for i in range(5):
-            matrix = np.random.randn(self.N, self.N) + 1j * np.random.randn(self.N, self.N)
-            nr_ris = matrix - np.eye(self.N, dtype=np.complex128)
-            H_down_real = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, nr_ris)
-
-            reward += self.compute_reward(H_down_real, self.action_w_normal(action))
-            reward_random_bf += self.compute_reward(H_down_real, self.action_w_random())
-            reward_mrt += self.compute_reward_attack(H_down_real, uplink.T)
-            reward_zf += self.compute_reward_attack_zf(H_down_real, uplink.T)
-            reward_direct_mrt += self.compute_reward_attack(self.Hub.T, self.Hub.T)
-            reward_direct_zf += self.compute_reward_attack_zf(self.Hub.T, self.Hub.T)
-
-            # Test another random RIS configuration
-            matrix_random = np.random.randn(self.N, self.N) + 1j * np.random.randn(self.N, self.N)
-            nr_ris_random = matrix_random - np.eye(self.N, dtype=np.complex128)
-            uplink_random = self.uplink_channel_compute(self.Hur, self.Hub, self.Hrb, nr_ris_random)
-            H_down_real_random_ris = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, nr_ris_random)
-            reward_random_mrt += self.compute_reward_attack(H_down_real_random_ris, uplink_random.T)
-            reward_random_zf += self.compute_reward_attack_zf(H_down_real_random_ris, uplink_random.T)
-
-        # Return average rewards
-        return None, reward / 5, reward_random_bf / 5, reward_random_mrt / 5, reward_random_zf / 5, reward_mrt / 5, reward_direct_mrt / 5, reward_zf / 5, reward_direct_zf / 5
 
     def get_NR_array(self, Hur_all, Hub_all, Hrb_all):
         """Select optimal RIS configuration based on channel data"""
