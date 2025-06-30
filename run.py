@@ -18,8 +18,8 @@ N = 256
 K = 4
 
 # Create environment instances for training and evaluation
-env = Env.nd_ris()
-env_evaluate = Env.nd_ris()
+env = Env.NR_RIS_Env()
+env_evaluate = Env.NR_RIS_Env()
 
 def evaluate_policy(args, env, agent, nr_ris):
     """Evaluate the policy performance with specified number of RIS elements"""
