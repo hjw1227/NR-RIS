@@ -12,6 +12,7 @@ import Env_test
 # Communication parameters
 M = 32  # Number of base station antennas
 N = 64  # Number of RIS elements
+K = 4  # Number of users
 
 # Initialize environments
 env_evaluate = Env_test.nd_ris(N, M)
