@@ -15,7 +15,7 @@ N = 64  # Number of RIS elements
 K = 4  # Number of users
 
 # Initialize environments
-env_evaluate = Env_test.nd_ris(N, M)
+env_evaluate = Env_test.nr_ris(N, M)
 malicious = True
 
 def test_policy(args, env, times):
