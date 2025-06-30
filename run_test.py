@@ -45,7 +45,7 @@ def test_policy(args, env, times):
 
     # Initialize and load trained agent
     agent = PPO_continuous_cnn(args)
-    agent.load_model('agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
+    agent.load_model('agent_32_64_4(entroy=0.004)(per_log2_ris2_no_fixed_rewardNorm)')
 
     # Extract channel matrices
     Hur_all = data['Hur_all']
@@ -187,9 +187,6 @@ if __name__ == '__main__':
     parser.add_argument("--epsilon", type=float, default=0.35, help="PPO clip parameter")
     parser.add_argument("--K_epochs", type=int, default=10, help="Number of policy optimization epochs")
     parser.add_argument("--use_adv_norm", type=bool, default=True, help="Use advantage normalization")
-    parser.add_argument("--use_state_norm", type=bool, default=False, help="Use state normalization")
-    parser.add_argument("--use_reward_norm", type=bool, default=False, help="Use reward normalization")
-    parser.add_argument("--use_reward_scaling", type=bool, default=False, help="Use reward scaling")
     parser.add_argument("--entropy_coef", type=float, default=0.035, help="Entropy regularization coefficient")
     parser.add_argument("--use_lr_decay", type=bool, default=True, help="Use learning rate decay")
     parser.add_argument("--use_grad_clip", type=bool, default=True, help="Use gradient clipping")
@@ -202,4 +199,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Run policy evaluation
-    test_policy(args, env_evaluate, 1000)
+    test_policy(args, env_evaluate, 5000)
