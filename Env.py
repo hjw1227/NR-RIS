@@ -4,7 +4,7 @@ import numpy as np
 from norm import MeanStdNormalizer, MinMaxNormalizer, LogNormalizer, DynamicNormalizer
 
 
-class nd_ris(object):
+class NR_RIS_Env(object):
     def __init__(self):
         """Initialize communication environment with RIS parameters"""
         # System fixed parameters
