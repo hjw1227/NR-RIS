@@ -14,7 +14,7 @@ import Env
 
 # Initialize basic parameters for the environment
 M = 32
-N = 256
+N = 64
 K = 4
 
 # Create environment instances for training and evaluation
@@ -60,7 +60,7 @@ def evaluate_policy(args, env, agent, nr_ris):
 def main(args, seed):
     """Main training function for the PPO agent"""
     # Load channel data for training
-    data = np.load('channel_data2_ris2_32_256_4.npz')
+    data = np.load('channel_data2_ris2_32_64_4.npz')
     Hur_all = data['Hur_all']
     Hub_all = data['Hub_all']
     Hrb_all = data['Hrb_all']
@@ -165,14 +165,14 @@ def main(args, seed):
                     ax1.set_xlabel('Episodes')
                     ax1.set_ylabel('Return Reward')
                     foo_fig = plt.gcf()
-                    foo_fig.savefig('./train_32_256_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm).pdf',
+                    foo_fig.savefig('./train_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm).pdf',
                                     format='pdf', bbox_inches='tight', dpi=600, pad_inches=0.0)
                     plt.show()
         # Save model periodically
         if ep % 5000 == 0:
-            agent.save_model('agent_32_256_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
+            agent.save_model('agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
         # Save evaluation results
-        np.savetxt('32_256_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)', evaluate_rewards_all)
+        np.savetxt('32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)', evaluate_rewards_all)
 
 
 if __name__ == '__main__':
