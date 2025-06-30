@@ -18,7 +18,7 @@ N = 256
 K = 4
 
 # Create environment instances for training and evaluation
-env = Env.nr_ris()
+env = Env.nd_ris()
 env_evaluate = Env.nd_ris()
 
 def evaluate_policy(args, env, agent, nr_ris):
