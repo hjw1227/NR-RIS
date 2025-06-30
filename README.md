@@ -24,7 +24,8 @@ The project addresses the challenge of designing resilient communication systems
 ├── norm.py               # Logarithmic normalization utility
 ├── normalization.py      # Dynamic mean-std normalization
 ├── ppo_continuous_cnn.py # PPO algorithm implementation
-├── replaybuffer_con_cnn_per.py # Priority experience replay buffer
+├── replaybuffer_con_cnn_per.py # Generate channel matrices
+├── channel_generate.py   # Priority experience replay buffer
 ├── run.py                # Training script
 └── run_test.py           # Evaluation script
 ```
@@ -96,7 +97,7 @@ python run.py --max_train_episode 2000000 --entropy_coef 0.005
 
 ### Evaluating the Policy
 ```bash
-python run_test.py --times 1000
+python run_test.py --times 5000
 ```
 
 ### Command Line Arguments
@@ -129,6 +130,12 @@ Implements a priority experience replay buffer for:
 - Mixed sampling to balance exploration-exploitation
 - Efficient data loading for training
 
+### channel_generate.py
+Implements a wireless channel generation module for:
+- Creating realistic communication channel matrices
+- Generating channels for user, NR-RIS nodes
+- Efficient data storage and loading for reproducible experiments
+  
 ### norm.py & normalization.py
 Provide normalization utilities for:
 - Logarithmic transformation of channel data
