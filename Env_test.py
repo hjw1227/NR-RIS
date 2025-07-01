@@ -220,10 +220,11 @@ class NR_RIS_Env(object):
                 reward_disco, reward_random_bf_disco, reward_random_mrt_disco, reward_random_zf_disco,
                 reward_mrt_disco, reward_direct_mrt_disco, reward_zf_disco, reward_direct_zf_disco)
 
-    def get_NR_array(self, Hur_all, Hub_all, Hrb_all, malicious):
+    def get_NR_array(self, malicious):
         """Select the NR-RIS configuration based on channel data"""
         t = 100 if malicious else 1
         rate = 0
+        min_rate = float('inf')
         list = []
         for j in range(t):
             # Generate a random RIS configuration
@@ -237,9 +238,7 @@ class NR_RIS_Env(object):
 
             # Evaluate the configuration using channel data
             for i in range(t):
-                Hur = Hur_all[i]
-                Hub = Hub_all[i]
-                Hrb = Hrb_all[i]
+                Hur, Hub, Hrb = self.generate_channel()
                 reward_direct_mrt, rate_direct_mrt = self.compute_reward_attack(Hub.T, Hub.T)
                 reward_direct_zf, rate_direct_zf = self.compute_reward_attack_zf(Hub.T, Hub.T)
                 uplink = self.uplink_channel_compute(Hur, Hub, Hrb, nr_ris)
