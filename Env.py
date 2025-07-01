@@ -76,7 +76,7 @@ class NR_RIS_Env(object):
         return state_, reward
 
 
-    def get_NR_array(self, Hur_all, Hub_all, Hrb_all):
+    def get_NR_array(self):
         """Select NR-RIS configuration based on channel data"""
         rate = 0
         best_nr_ris = None
@@ -94,9 +94,7 @@ class NR_RIS_Env(object):
 
             # Calculate performance for this configuration
             for i in range(1):
-                Hur = Hur_all[i]
-                Hub = Hub_all[i]
-                Hrb = Hrb_all[i]
+                Hur, Hub, Hrb = self.generate_channel()
                 reward_direct_mrt = self.compute_reward_attack(Hub.T, Hub.T)
                 reward_direct_zf = self.compute_reward_attack_zf(Hub.T, Hub.T)
                 uplink = self.uplink_channel_compute(Hur, Hub, Hrb, nr_ris)
