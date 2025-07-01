@@ -11,7 +11,7 @@ class NR_RIS_Env(object):
         self.N = N  # Number of RIS elements
         self.M = M  # Number of base station antennas
         self.K = 4  # Number of users
-        self.B = 100  # Bandwidth (MHz)
+        self.B = 1  # Bandwidth (MHz)
         self.pho = 0.01  # Transmission power
         self.kappa = 6  # Rice factor for user-RIS channel
         self.kappa_rb = 12  # Rice factor for RIS-base station channel
@@ -221,7 +221,7 @@ class NR_RIS_Env(object):
                 reward_mrt_disco, reward_direct_mrt_disco, reward_zf_disco, reward_direct_zf_disco)
 
     def get_NR_array(self, Hur_all, Hub_all, Hrb_all, malicious):
-        """Select the optimal RIS configuration based on channel data"""
+        """Select the NR-RIS configuration based on channel data"""
         t = 100 if malicious else 1
         rate = 0
         list = []
@@ -247,12 +247,12 @@ class NR_RIS_Env(object):
                 H_down_real = self.downlink_channel_compute(Hur, Hub, Hrb, nr_ris)
                 reward_mrt, rate_mrt = self.compute_reward_attack(H_down_real, H_down)
                 reward_zf, rate_zf = self.compute_reward_attack_zf(H_down_real, H_down)
-                rate += ((reward_mrt / reward_direct_mrt) + (reward_zf / reward_direct_zf))
+                rate += ((reward_mrt / reward_direct_mrt) + (reward_zf / reward_direct_zf)) # Malicious NR-RIS simultaneously attacks MRT and ZF
 
             # Keep track of the best configuration
             list.append(rate)
-            if j == 0 or rate < rate_low:
-                rate_low = rate
+            if j == 0 or rate < min_rate:
+                min_rate = rate
                 self.nr_ris = nr_ris
             rate = 0
 
@@ -430,15 +430,6 @@ class NR_RIS_Env(object):
         H_hermitian = np.conj(H).T
         return H_hermitian / np.linalg.norm(H_hermitian, 'fro')
 
-    def action_w(self, action):
-        """Convert agent action to a complex precoding matrix"""
-        action_w = np.empty([self.M, self.K], dtype=complex)
-        for i in range(self.K):
-            real_part = action[self.M * i:self.M * (i + 1)]
-            imag_part = action[self.M * (i + 1):self.M * (i + 2)]
-            for n in range(self.M):
-                action_w[n, i] = complex(real_part[n], imag_part[n])
-        return action_w / np.linalg.norm(action_w, 'fro')
 
     def action_w_normal(self, action):
         """Convert and normalize agent action to a complex precoding matrix"""
