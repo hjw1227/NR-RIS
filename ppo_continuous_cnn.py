@@ -15,20 +15,15 @@ def orthogonal_init(layer, gain=1):
 class Actor_Beta(nn.Module):
     def __init__(self, args):
         super(Actor_Beta, self).__init__()
-
         self.conv_1 = nn.Conv2d(2, 4, kernel_size=2, stride=1, padding=1)
         self.conv_2 = nn.Conv2d(4, 8, kernel_size=2, stride=1, padding=1)
-        self.conv_3 = nn.Conv2d(8, 16, kernel_size=2, stride=1,padding=1)
-        # self.fc1 = nn.Linear(7504, 4096)
-        self.fc1 = nn.Linear(3920, 4096)
-        # self.fc1 = nn.Linear(2128, 4096)
-        self.fc2 = nn.Linear(4096, 1024)
-        # self.fc2 = nn.Linear(2028, 1024)
+        self.fc1 = nn.Linear(1632, 1024)
+        self.fc2 = nn.Linear(1024, 1024)
+        self.fc3 = nn.Linear(1024, 512)
 
-
-        self.alpha_layer = nn.Linear(1024, args.action_dim)
-        self.beta_layer = nn.Linear(1024, args.action_dim)
-        self.activate_func = [nn.ReLU(), nn.Tanh()][args.use_tanh]  # Trick10: use tanh
+        self.alpha_layer = nn.Linear(512, args.action_dim)
+        self.beta_layer = nn.Linear(512, args.action_dim)
+        self.activate_func = [nn.ReLU(), nn.Tanh()][args.use_tanh]  #  use tanh
 
         if args.use_orthogonal_init:
             print("------use_orthogonal_init------")
@@ -38,26 +33,22 @@ class Actor_Beta(nn.Module):
             orthogonal_init(self.beta_layer, gain=0.01)
 
     def forward(self, s):
-
         H_matrix = s
-        # H_matrix = s.unsqueeze(0)
         H_matrix = F.relu(self.conv_1(H_matrix))
         H_matrix = F.relu(self.conv_2(H_matrix))
-        H_matrix = F.relu(self.conv_3(H_matrix))
-        # s = torch.flatten(H_matrix, 1)
         s = H_matrix.view(H_matrix.size(0), -1)
         s = self.activate_func(self.fc1(s))
         s = self.activate_func(self.fc2(s))
+        s = self.activate_func(self.fc3(s))
 
         alpha = F.softplus(self.alpha_layer(s)) + 1.0
         # print('Value of softplus: ', F.softplus(self.alpha_layer(s)))
         beta = F.softplus(self.beta_layer(s)) + 1.0
         return alpha, beta
 
+
     def get_dist(self, s):
         alpha, beta = self.forward(s)
-        # print('Value of alpha:', alpha)
-        # print('Value of beta:', beta)
         dist = Beta(alpha, beta)
         return dist
 
@@ -65,7 +56,6 @@ class Actor_Beta(nn.Module):
         alpha, beta = self.forward(s)
         mean = alpha / (alpha + beta)  # The mean of the beta distribution
         return mean
-
 
 class Actor_Gaussian(nn.Module):
     def __init__(self, args):
@@ -119,12 +109,10 @@ class Critic(nn.Module):
 
         self.conv_1= nn.Conv2d(2, 4, kernel_size=2, stride=1, padding=1)
         self.conv_2 = nn.Conv2d(4, 8, kernel_size=2, stride=1, padding=1)
-        self.conv_3 = nn.Conv2d(8, 16, kernel_size=2, stride=1,padding=1)
-        # self.fc1 = nn.Linear(7504, 4096)
-        self.fc1 = nn.Linear(3920, 4096)
-        # self.fc1 = nn.Linear(2128, 4096)
-        self.fc2 = nn.Linear(4096, 512)
+        self.fc1 = nn.Linear(1632, 1024)
+        self.fc2 = nn.Linear(1024, 512)
         self.fc3 = nn.Linear(512, 1)
+
 
         if args.use_orthogonal_init:
             print("------use_orthogonal_init------")
@@ -134,15 +122,12 @@ class Critic(nn.Module):
 
     def forward(self, s):
         H_matrix =s
-        # H_matrix = torch.tensor(s, dtype=torch.float).to(torch.device("cuda")).unsqueeze(0)
         H_matrix = F.relu(self.conv_1(H_matrix))
         H_matrix = F.relu(self.conv_2(H_matrix))
-        H_matrix = F.relu(self.conv_3(H_matrix))
         s = H_matrix.view(H_matrix.size(0), -1)
         s = self.activate_func(self.fc1(s))
 
         s = self.activate_func(self.fc2(s))
-        # s = self.activate_func(self.fc2(s))
         v_s = self.fc3(s)
         return v_s
 
@@ -285,7 +270,6 @@ class PPO_continuous_cnn():
         print("save model success")
 
     def load_model(self, env_name):
-        # self.ac.load_state_dict(torch.load("./model/PPO_actor_env_{}.pth".format(env_name)))
         self.actor.load_state_dict(torch.load("./actor_{}.pth".format(env_name)))
 
 
