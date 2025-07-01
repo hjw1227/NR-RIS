@@ -1,6 +1,6 @@
 # SecureCoder: DRL-Based Robust Precoder Design Against Malicious NR-RIS
 
-This repository contains the implementation of SecureCoder, an enhanced Proximal Policy Optimization (PPO) algorithm for robust precoder design in wireless networks against malicious Non-Reflective Intelligent Surface (NR-RIS) attacks. The solution leverages deep reinforcement learning to optimize communication precoders, ensuring resilience against intentional interference from malicious RIS elements.
+This repository contains the implementation of SecureCoder, an enhanced Proximal Policy Optimization (PPO) algorithm for robust precoder design in wireless networks against malicious NR-RIS attacks. The solution leverages deep reinforcement learning to optimize communication precoders, ensuring resilience against NR-RIS CRACK.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -11,32 +11,32 @@ This repository contains the implementation of SecureCoder, an enhanced Proximal
 - [File Descriptions](#file-descriptions)
 
 ## Project Overview
-The project addresses the challenge of designing resilient communication systems in the presence of malicious NR-RIS (Non-Reflective Intelligent Surface) attacks. Using deep reinforcement learning, the solution learns optimal precoding policies to maintain communication quality and security by:
-- Modeling realistic wireless channels with Rice fading
+The project addresses the challenge of designing resilient communication systems in the presence of malicious NR-RIS attacks. Using deep reinforcement learning, the solution learns optimal precoding policies to maintain communication quality and security by:
+- Modeling realistic wireless channels with Rician fading
 - Implementing a priority experience replay buffer for efficient training
 - Evaluating against multiple baselines (MRT, ZF, random beamforming)
-- Calculating secrecy rate and outage probability metrics
+- Calculating secrecy rate and secrecy outage probability(SoP) metrics
 
 ## Code Structure
 ```
 .
-├── Env_test.py           # Adversarial RIS communication environment
-├── norm.py               # Logarithmic normalization utility
-├── normalization.py      # Dynamic mean-std normalization
+├── Env_test.py           # Communication environment for test
+├── Env.py                # Communication environment for training
+├── norm.py               # Normalization utility
 ├── ppo_continuous_cnn.py # PPO algorithm implementation
-├── replaybuffer_con_cnn_per.py # Generate channel matrices
-├── channel_generate.py   # Priority experience replay buffer
-├── run.py                # Training script
-└── run_test.py           # Evaluation script
+├── replaybuffer_con_cnn_per.py # Priority experience replay buffer
+├── channel_generate.py   #  Generate channel matrices
+├── main.py                # Training script
+└── main_test.py           # Evaluation script
 ```
 
 ## Key Components
 
-### 1. Communication Environment (Env_test.py)
-The `NR_RIS_Env` class simulates a RIS-assisted wireless environment with:
+### 1. Communication Environment (Env_test.py/Env.py)
+The `NR_RIS_Env` class simulates a NR-RIS-assisted wireless environment with:
 - **System Parameters**: 
   - `N` (RIS elements), `M` (base station antennas), `K` (users)
-  - Path loss exponents, Rice factors for channel modeling
+  - Path loss exponents, Rician factors for channel modeling
 - **Core Methods**:
   - `reset()`: Initialize environment state
   - `get_state()`: Normalize channel state for agent input
@@ -48,9 +48,6 @@ The `NR_RIS_Env` class simulates a RIS-assisted wireless environment with:
 
 ### 2. Normalization Utilities
 - **norm.py**: `LogNormalizer` for logarithmic transformation and normalization
-- **normalization.py**: 
-  - `RunningMeanStd`: Dynamically compute mean and standard deviation
-  - `Normalization`: State normalization for stable training
 
 ### 3. PPO Algorithm (ppo_continuous_cnn.py)
 - **Critic Network**: CNN-based value function approximation
@@ -72,14 +69,14 @@ The `NR_RIS_Env` class simulates a RIS-assisted wireless environment with:
   - `numpy_to_tensor()`: Convert samples to tensor format
 
 ### 5. Training & Evaluation Scripts
-- **run.py**: Main training loop with:
+- **main.py**: Main training loop with:
   - Channel data loading and initialization
   - Periodic policy evaluation and plotting
   - Model saving and result logging
-- **run_test.py**: Evaluate trained policy against:
+- **main_test.py**: Evaluate trained policy against:
   - Malicious RIS attacks
   - Baseline precoding strategies
-  - Secrecy rate and outage probability metrics
+  - Secrecy rate and SoP metrics
 
 ## Dependencies
 - Python 3.7+
@@ -92,18 +89,19 @@ The `NR_RIS_Env` class simulates a RIS-assisted wireless environment with:
 
 ### Training the Agent
 ```bash
-python run.py --max_train_episode 2000000 --entropy_coef 0.005
+python main.py --max_train_episode 300000 --entropy_coef 0.005
 ```
 
 ### Evaluating the Policy
 ```bash
-python run_test.py --times 5000
+python main_test.py --times 5000
+Here is a saved model for M=32 N=64 --"actor_agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm).pth"
 ```
 
 ### Command Line Arguments
 | Argument              | Default | Description                          |
 |-----------------------|---------|--------------------------------------|
-| `--max_train_episode` | 300000 | Number of training episodes          |
+| `--max_train_episode` | 300000  | Number of training episodes          |
 | `--max_train_steps`   | 20      | Steps per training episode           |
 | `--policy_dist`       | "Beta"  | Policy distribution (Beta/Gaussian)  |
 | `--batch_size`        | 4000    | Training batch size                  |
@@ -136,7 +134,7 @@ Implements a wireless channel generation module for:
 - Generating channels for user, NR-RIS nodes
 - Efficient data storage and loading for reproducible experiments
   
-### norm.py & normalization.py
+### norm.py
 Provide normalization utilities for:
 - Logarithmic transformation of channel data
 - Dynamic mean and standard deviation calculation
