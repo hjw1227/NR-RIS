@@ -16,7 +16,7 @@ K = 4  # Number of users
 
 # Initialize environments
 env_evaluate = Env_test.NR_RIS_Env(N, M)
-malicious = True
+malicious = True # False
 
 def test_policy(args, env, times):
     """Evaluate trained PPO policy against various baselines"""
@@ -45,7 +45,7 @@ def test_policy(args, env, times):
 
     # Initialize and load trained agent
     agent = PPO_continuous_cnn(args)
-    agent.load_model('agent_32_64_4(entroy=0.004)(per_log2_ris2_no_fixed_rewardNorm)')
+    agent.load_model('agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
 
     # Extract channel matrices
     Hur_all = data['Hur_all']
@@ -53,9 +53,9 @@ def test_policy(args, env, times):
     Hrb_all = data['Hrb_all']
 
     # Initialize RIS configuration
-    if malicious:
+    if malicious: # Select the malicious NR-RIS configuration based on channel data
         env.get_NR_array(Hur_all, Hub_all, Hrb_all,True)
-    else:
+    else:  # Select the Random NR-RIS configuration based on channel data
         env.get_NR_array(Hur_all, Hub_all, Hrb_all, False)
 
 
@@ -199,4 +199,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Run policy evaluation
-    test_policy(args, env_evaluate, 5000)
+    test_policy(args, env_evaluate, 3000)
