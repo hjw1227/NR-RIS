@@ -5,13 +5,14 @@ from norm import MeanStdNormalizer, MinMaxNormalizer, LogNormalizer, DynamicNorm
 
 
 class NR_RIS_Env(object):
+    ''' '''
     def __init__(self):
-        """Initialize communication environment with RIS parameters"""
+        """Initialize communication environment with NR-RIS parameters"""
         # System fixed parameters
         self.N = 64  # Number of RIS elements
         self.M = 32  # Number of base station antennas
         self.K = 4  # Number of users
-        self.B = 100  # Bandwidth (MHz)
+        self.B = 1  # Bandwidth (MHz)
         self.pho = 0.01  # Transmission power
         self.kappa = 6  # Rice factor for user-RIS channel
         self.kappa_rb = 12  # Rice factor for RIS-base station channel
@@ -63,8 +64,7 @@ class NR_RIS_Env(object):
         step += 1
         H_down_real = self.downlink_channel_compute(self.Hur, self.Hub, self.Hrb, self.nr_ris)
         reward = self.compute_reward(H_down_real, self.action_w_normal(action))
-        reward_mrt = 0
-        reward_direct = 0
+
 
         # Get next state
         state_ = self.get_state()
@@ -73,11 +73,11 @@ class NR_RIS_Env(object):
         reward_normalizer = DynamicNormalizer(window_size=4000)
         reward = reward_normalizer.normalize(reward)
 
-        return state_, reward, reward_mrt, reward_direct
+        return state_, reward
 
 
     def get_NR_array(self, Hur_all, Hub_all, Hrb_all):
-        """Select optimal RIS configuration based on channel data"""
+        """Select NR-RIS configuration based on channel data"""
         rate = 0
         best_nr_ris = None
         min_rate = float('inf')
@@ -192,7 +192,7 @@ class NR_RIS_Env(object):
         return (Hur.T @ nr_ris @ Hrb.T) + Hub.T
 
     def compute_reward(self, H_real_down, action):
-        """Compute reward based on sum rate of users"""
+        """Compute reward based on  sum rate of users by SecureCode"""
         W = action
         rate = np.zeros(self.K)
         for k in range(self.K):
@@ -200,7 +200,7 @@ class NR_RIS_Env(object):
             W_removed = np.delete(W, k, axis=1)
             interference = np.sum(np.abs(np.dot(H_real_down[k, :], W_removed)) ** 2)
             sinr = sig / (interference + self.noise)
-            rate[k] = 0.1 * self.B * np.log2(1 + sinr)
+            rate[k] = 10 * self.B * np.log2(1 + sinr) # Times 10 is for scaling reward value. During testing, we will remove this 10.
             rate[k] = np.log2(rate[k] + 1e-5)  # Avoid log(0)
         return np.sum(rate)
 
@@ -239,18 +239,8 @@ class NR_RIS_Env(object):
         H_hermitian = np.conj(H).T
         return H_hermitian / np.linalg.norm(H_hermitian, 'fro')  # Normalize
 
-    def action_w(self, action):
-        """Convert agent action to complex precoding matrix"""
-        action_w = np.empty([self.M, self.K], dtype=complex)
-        for i in range(self.K):
-            real_part = action[self.M * i:self.M * (i + 1)]
-            imag_part = action[self.M * (i + 1):self.M * (i + 2)]
-            for n in range(self.M):
-                action_w[n, i] = complex(real_part[n], imag_part[n])
-        return action_w / np.linalg.norm(action_w, 'fro')  # Normalize
-
     def action_w_normal(self, action):
-        """Convert and normalize agent action to complex precoding matrix"""
+        """Convert and normalize agent action to complex precoding matrix,satisfy power constraint """
         w = copy.deepcopy(action)
         w[self.M * self.K:] = w[self.M * self.K:] * 2 * np.pi  # Map to [0, 2π]
         action_w = w.reshape((2, self.M, self.K))
