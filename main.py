@@ -51,11 +51,7 @@ def evaluate_policy(args, env, agent, nr_ris):
 
 def main(args, seed):
     """Main training function for the PPO agent"""
-    # Load channel data for training
-    data = np.load('channel_data2_ris2_32_64_4.npz')
-    Hur_all = data['Hur_all']
-    Hub_all = data['Hub_all']
-    Hrb_all = data['Hrb_all']
+
 
     # Set random seeds for reproducibility
     np.random.seed(seed)
@@ -78,13 +74,13 @@ def main(args, seed):
     total_steps = 0
 
     # Set initial channel data for the environment
-    env.get_NR_array(Hur_all, Hub_all, Hrb_all)
+    env.get_NR_array()
 
     # Main training loop
     for ep in range(args.max_train_episode):
         # Update channel data periodically
         if ep % 100 == 0:
-            env.get_NR_array(Hur_all, Hub_all, Hrb_all)
+            env.get_NR_array()
         state = env.reset()
 
         reward_ep = 0
