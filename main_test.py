@@ -35,8 +35,6 @@ def test_policy(args, env, times):
     test_reward_eve_crack_mrt = []
     test_reward_eve_crack_zf = []
 
-    # Load pre-generated channel data
-    data = np.load('channel_data2_ris2_32_64_4.npz')
     args.state_dim = 2 * M * K
     args.action_dim = 2 * M * K
     print(f"State dimension: {args.state_dim}")
@@ -47,16 +45,11 @@ def test_policy(args, env, times):
     agent = PPO_continuous_cnn(args)
     agent.load_model('agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
 
-    # Extract channel matrices
-    Hur_all = data['Hur_all']
-    Hub_all = data['Hub_all']
-    Hrb_all = data['Hrb_all']
-
     # Initialize RIS configuration
     if malicious: # Select the malicious NR-RIS configuration based on channel data
-        env.get_NR_array(Hur_all, Hub_all, Hrb_all,True)
+        env.get_NR_array(True)
     else:  # Select the Random NR-RIS configuration based on channel data
-        env.get_NR_array(Hur_all, Hub_all, Hrb_all, False)
+        env.get_NR_array(False)
 
 
     # Evaluate policy over multiple episodes
@@ -79,7 +72,11 @@ def test_policy(args, env, times):
         # Run single episode
         for step in range(1):
             # Generate new channel realization
-            env.get_NR_array(Hur_all, Hub_all, Hrb_all)
+            if malicious:  # Select the malicious NR-RIS configuration based on channel data
+                env.get_NR_array(True)
+            else:  # Select the Random NR-RIS configuration based on channel data
+                env.get_NR_array(False)
+
             state = env.reset()
 
             # Get action from trained policy
