@@ -14,47 +14,39 @@ import Env
 
 # Initialize basic parameters for the environment
 M = 32
-N = 64
+N = 256
 K = 4
 
 # Create environment instances for training and evaluation
 env = Env.NR_RIS_Env()
-env_evaluate = Env.NR_RIS_Env()
+env_evaluate = Env.NR_RIS_Env() # it is for generating the figure of training process
 
 def evaluate_policy(args, env, agent, nr_ris):
-    """Evaluate the policy performance with specified number of RIS elements"""
+    """Evaluate the policy performance """
     env.nr_ris = nr_ris
     times = 1
     evaluate_reward_all = 0
-    evaluate_reward_all_mrt = 0
-    evaluate_reward_all_d = 0
 
     # Run evaluation episodes
     for ep in range(times):
         state = env.reset()
         episode_reward_all = 0
-        episode_reward_all_mrt = 0
-        episode_reward_all_d = 0
 
         # Run each episode for max_train_steps
         for step in range(args.max_train_steps):
             # Get action from the agent
             action = agent.evaluate(state)
             # Execute action and get rewards
-            state_, reward_all, reward_mrt, reward_d, done = env.step(action, step)
-            # Accumulate rewards
+            state_, reward_all= env.step(action, step)
+            # Accumulate reward
             episode_reward_all += reward_all
-            episode_reward_all_mrt += reward_mrt
-            episode_reward_all_d += reward_d
             state = state_
 
         # Accumulate evaluation rewards
         evaluate_reward_all += episode_reward_all
-        evaluate_reward_all_mrt += episode_reward_all_mrt
-        evaluate_reward_all_d += episode_reward_all_d
 
     # Return average rewards
-    return evaluate_reward_all / times, evaluate_reward_all_mrt / times, evaluate_reward_all_d / times
+    return evaluate_reward_all / times
 
 
 def main(args, seed):
@@ -83,8 +75,6 @@ def main(args, seed):
     # Tracking variables for evaluation
     evaluate_num = 0  # Record evaluation count
     evaluate_rewards_all = []  # Record all rewards during evaluation
-    evaluate_rewards_all_mrt = []  # Record MRT-related rewards
-    evaluate_rewards_all_d = []  # Record direct transmission rewards
     total_steps = 0
 
     # Set initial channel data for the environment
@@ -98,8 +88,6 @@ def main(args, seed):
         state = env.reset()
 
         reward_ep = 0
-        reward_mrt_ep = 0
-        reward_d_ep = 0
 
         # Run each episode for max_train_steps
         for step in range(args.max_train_steps):
@@ -114,13 +102,11 @@ def main(args, seed):
                 action = action
 
             # Execute action in environment and get results
-            state_, reward_all, reward_mrt, reward_d = env.step(action, step)
+            state_, reward_all = env.step(action, step)
             print('reward_all', reward_all)
 
             # Accumulate episode rewards
             reward_ep += reward_all
-            reward_mrt_ep += reward_mrt
-            reward_d_ep += reward_d
 
             # Determine terminal state
             if step + 1 == args.max_train_steps:
@@ -145,17 +131,13 @@ def main(args, seed):
             # Evaluate policy periodically
             if total_steps % args.evaluate_freq == 0:
                 evaluate_num += 1
-                evaluate_reward_all, evaluate_reward_all_mrt, evaluate_reward_all_d = evaluate_policy(args,
+                evaluate_reward_all = evaluate_policy(args,
                                                                                                       env_evaluate,
                                                                                                       agent, env.nr_ris)
                 evaluate_rewards_all.append(evaluate_reward_all)
-                evaluate_rewards_all_mrt.append(evaluate_reward_all_mrt)
-                evaluate_rewards_all_d.append(evaluate_reward_all_d)
 
                 # Apply Savitzky-Golay filter for smoothing
                 reward_filter_all = savgol_filter(evaluate_rewards_all, 53, 3, mode='nearest')
-                reward_mrt_filter_all = savgol_filter(evaluate_rewards_all_mrt, 53, 3, mode='nearest')
-                reward_d_filter_all = savgol_filter(evaluate_rewards_all_d, 53, 3, mode='nearest')
 
                 # Plot evaluation results periodically
                 if evaluate_num % 100 == 0:
@@ -172,7 +154,7 @@ def main(args, seed):
         if ep % 5000 == 0:
             agent.save_model('agent_32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)')
         # Save evaluation results
-        np.savetxt('32_64_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)', evaluate_rewards_all)
+        np.savetxt('32_256_4(entroy=0.005)(per_log2_ris2_no_fixed_rewardNorm)', evaluate_rewards_all)
 
 
 if __name__ == '__main__':
